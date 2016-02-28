@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="ISO-8859-1">
+<title>Insert title here</title>
+</head>
+<body onload="loadPosts()">
+<div id="prevPosts">
+	
+</div>
+Post your message<textarea rows="5" cols="30" id="message" name="message"></textarea>
+	   <p>
+		Select a file : <input type="file" id="file" name="file" size="45" />
+	   </p>
+	   <input type="submit" value="Upload File" onclick="postMessage(this)"/>
+	   
+	   Enter conversation Nr <input type="text" name="conversationNr" id="conversationNr"/>
+	   Add Comment <textarea rows="5" cols="10" id="comment" name="comment"></textarea>
+	   <p>
+		Select a file : <input type="file" id="commentfile" name="commentfile" size="45" />
+	   </p>
+	   <input type="submit" value="Upload File" onclick="addComment()"/>
+</body>
+<script type="text/javascript">
+function loadPosts()
+{
+		var id="1234";
+		var REST_DATA = "rest/files/getPosts?id="+id;
+		alert(REST_DATA);
+		xhrGet(REST_DATA, function(item){
+			var json = JSON.parse(item);
+			alert("Message posted successfully and object is "+json);
+			console.log(json);
+			callback && callback();
+		}, function(err){
+			console.log(err);
+			//stop showing loading message
+			document.getElementById('errorDiv').innerHTML = err;
+		});	
+	
+}
+
+function postMessage(msg){
+	var msgg = document.getElementById("message").value;
+	alert("message is "+msgg);
+	var file = document.getElementById("file").files[0];
+	 
+	alert("file name is "+file.name);
+	alert("file is "+file);
+//	var data = "message="+msgg;
+	var data = new FormData();
+	data.append("file",file);
+	data.append("message",msgg);
+	var REST_DATA = "rest/files/upload";
+	
+	xhrPost(REST_DATA, data, function(item){
+		var json = JSON.parse(item);
+		alert("Message posted successfully and object is "+json);
+		console.log(json);
+		callback && callback();
+	}, function(err){
+		console.log(err);
+		//stop showing loading message
+		document.getElementById('errorDiv').innerHTML = err;
+	});
+}
+
+function addComment(){
+	var conversationNr = document.getElementById("conversationNr").value;
+	var comment = document.getElementById("comment").value;
+	var file = document.getElementById("commentfile").files[0];
+	alert("Comment is "+comment);
+	alert("file name is "+file.name);
+	alert("file is "+file);
+	
+	var data = new FormData();
+	data.append("conversationNr",conversationNr);
+	data.append("comment",comment);
+	data.append("file",file);
+	var REST_DATA = "rest/files/addComment";
+xhrPost(REST_DATA, data, function(item){
+		var json = JSON.parse(item);
+		alert("Message posted successfully and item is "+item+" and id is "+json.id);
+		callback && callback();
+	}, function(err){
+		console.log(err);
+		//stop showing loading message
+		document.getElementById('errorDiv').innerHTML = err;
+	});
+	
+}
+
+function xhrPost(url, data, callback, errback){
+	var xhr = new XMLHttpRequest();
+	xhr.open("POST", url, true);
+	xhr.setRequestHeader("enctype", "multipart/form-data");
+	//xhr.setRequestHeader("Content-type", "multipart/form-data");
+	xhr.onreadystatechange = function(){
+		if(xhr.readyState == 4){
+			if(xhr.status == 200){
+				callback(xhr.responseText);
+			}else{
+				errback("Error: "+xhr.responseText);
+			}
+		}
+	};
+	xhr.timeout = 100000;
+	xhr.ontimeout = errback;
+	xhr.send(data);
+}
+
+function xhrGet(url,  callback, errback){
+	var xhr = new XMLHttpRequest();
+	xhr.setRequestHeader("Accept", "application/json");
+	xhr.open("GET", url, true);
+	xhr.onreadystatechange = function(){
+		if(xhr.readyState == 4){
+			if(xhr.status == 200){
+				callback(parseJson(xhr.responseText));
+			}else{
+				errback("Error: "+xhr.responseText);
+			}
+		}
+	};
+	
+	xhr.timeout = 100000;
+	xhr.ontimeout = errback;
+	xhr.send();
+}
+
+</script>
+</html>
